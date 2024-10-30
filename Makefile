@@ -36,3 +36,23 @@ clean:
 	@echo "Cleanup states of terraform that were created previously"
 	rm -f terraform/terraform.tfstate terraform/terraform.tfstate.backup
 
+.PHONY: build-sa
+CLOUDBUILD_SA:=$(shell gcloud builds get-default-service-account | grep gserviceaccount | cut -d / -f 4)
+build-sa:
+	@echo "Grant some authorizations to the service account for Cloud Build"
+
+	gcloud projects add-iam-policy-binding $(PROJECT_ID) \
+	--member=serviceAccount:$(CLOUDBUILD_SA) \
+	--role=roles/artifactregistry.repoAdmin
+
+	gcloud projects add-iam-policy-binding $(PROJECT_ID) \
+	--member=serviceAccount:$(CLOUDBUILD_SA) \
+	--role=roles/cloudbuild.builds.builder
+
+	gcloud projects add-iam-policy-binding $(PROJECT_ID) \
+	--member=serviceAccount:$(CLOUDBUILD_SA) \
+	--role=roles/run.admin
+
+	gcloud projects add-iam-policy-binding $(PROJECT_ID) \
+	--member=serviceAccount:$(CLOUDBUILD_SA) \
+	--role=roles/storage.admin
